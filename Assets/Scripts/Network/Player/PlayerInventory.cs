@@ -1,5 +1,4 @@
-﻿using System;
-using Item;
+﻿using Item;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,31 +16,39 @@ namespace Network.Player
         [SerializeField] private InputActionReference secondSlotReference;
         [SerializeField] private InputActionReference thirdSlotReference;
 
-        public SyncList<string> _inventoryString = new SyncList<string>();
-
         public UnityEvent<int> OnActiveSlotChanged;
 
         [SyncVar] private string _activeItem;
+        [SyncVar] private NetworkIdentity _activeNetworkObject;
+        
+        private readonly SyncList<string> _inventoryString = new SyncList<string>();
         private int _activeSlot;
 
         private void Start()
         {
-            SubscribeInputReference();
+            BindInputActions();
             if (isLocalPlayer)
                 OnActiveSlotChanged.AddListener(OnActiveSlotChange);
         }
 
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            if(!string.IsNullOrEmpty(_activeItem))
+                CmdSyncActiveItem(_activeItem);
+        }
+
         private void OnEnable()
         {
-            SubscribeInputReference();
+            BindInputActions();
         }
 
         private void OnDisable()
         {
-            UnSubscribeInputReference();
+            UnbindInputActions();
         }
 
-        private void UnSubscribeInputReference()
+        private void UnbindInputActions()
         {
             if (!isLocalPlayer) return;
             interactableReference.action.performed -= InteractablePerformed;
@@ -50,16 +57,16 @@ namespace Network.Player
             dropItemReference.action.performed -= DropItem;
             dropItemReference.action.Disable();
 
-            firstSlotReference.action.performed -= ChangeActiveFirstSlot;
-            secondSlotReference.action.performed -= ChangeActiveSecondSlot;
-            thirdSlotReference.action.performed -= ChangeActiveThirdSlot;
+            firstSlotReference.action.performed -= SetActiveFirstSlot;
+            secondSlotReference.action.performed -= SetActiveSecondSlot;
+            thirdSlotReference.action.performed -= SetActiveThirdSlot;
 
             firstSlotReference.action.Disable();
             secondSlotReference.action.Disable();
             thirdSlotReference.action.Disable();
         }
 
-        private void SubscribeInputReference()
+        private void BindInputActions()
         {
             if (!isLocalPlayer) return;
             interactableReference.action.performed += InteractablePerformed;
@@ -68,9 +75,9 @@ namespace Network.Player
             dropItemReference.action.performed += DropItem;
             dropItemReference.action.Enable();
 
-            firstSlotReference.action.performed += ChangeActiveFirstSlot;
-            secondSlotReference.action.performed += ChangeActiveSecondSlot;
-            thirdSlotReference.action.performed += ChangeActiveThirdSlot;
+            firstSlotReference.action.performed += SetActiveFirstSlot;
+            secondSlotReference.action.performed += SetActiveSecondSlot;
+            thirdSlotReference.action.performed += SetActiveThirdSlot;
 
             firstSlotReference.action.Enable();
             secondSlotReference.action.Enable();
@@ -84,7 +91,8 @@ namespace Network.Player
 
         private void DropItem(InputAction.CallbackContext obj)
         {
-            CmdDropItem(_inventoryString[0], viewTransform.position + viewTransform.forward);
+            if(_inventoryString.Count >= _activeSlot && !string.IsNullOrEmpty(_inventoryString[_activeSlot]))
+                CmdDropItem(_inventoryString[_activeSlot], viewTransform.position + viewTransform.forward);
         }
 
         private void TryPickUp()
@@ -103,48 +111,63 @@ namespace Network.Player
         private void OnActiveSlotChange(int newSlot)
         {
             if (_inventoryString.Count > newSlot && _inventoryString[newSlot] != null)
-                CmdSpawnInventoryItem(_inventoryString[newSlot], transform.forward);
+                CmdSpawnInventoryItem(_inventoryString[newSlot]);
         }
 
-        private void ChangeActiveFirstSlot(InputAction.CallbackContext obj)
+        private void SetActiveFirstSlot(InputAction.CallbackContext obj)
         {
             _activeSlot = 0;
             OnActiveSlotChanged?.Invoke(_activeSlot);
         }
 
-        private void ChangeActiveSecondSlot(InputAction.CallbackContext obj)
+        private void SetActiveSecondSlot(InputAction.CallbackContext obj)
         {
             _activeSlot = 1;
             OnActiveSlotChanged?.Invoke(_activeSlot);
         }
 
-        private void ChangeActiveThirdSlot(InputAction.CallbackContext obj)
+        private void SetActiveThirdSlot(InputAction.CallbackContext obj)
         {
             _activeSlot = 2;
             OnActiveSlotChanged?.Invoke(_activeSlot);
         }
 
         [Command(requiresAuthority = false)]
-        private void CmdSpawnInventoryItem(string itemKey, Vector3 direction) // Todo: Change name for method
+        private void CmdSpawnInventoryItem(string itemKey)
         {
             if (_activeItem == itemKey) return;
-            ItemInfo info = OnlineItemDatabase.ItemDatabase.GetItem(itemKey);
-            GameObject newItem = Instantiate(info.Prefab, transform.position, Quaternion.identity);
-
-            Rigidbody rigidbody = newItem.GetComponent<Rigidbody>();
-            if (rigidbody != null) rigidbody.isKinematic = true;
-            _activeItem = itemKey;
-            NetworkServer.Spawn(newItem);
             
-            SetParentForNewObject(netIdentity, newItem.GetComponent<NetworkIdentity>());
-            newItem.transform.localPosition = info.SpawnInventoryPosition;
-            newItem.transform.localRotation = Quaternion.LookRotation(direction, Vector3.forward);
+            ItemInfo info = OnlineItemDatabase.ItemDatabase.GetItem(itemKey);
+            GameObject newItem = Instantiate(info.Prefab, transform.position, Quaternion.identity, netIdentity.transform);
+            NetworkServer.Spawn(newItem.gameObject);
+            
+            _activeNetworkObject = newItem.GetComponent<NetworkIdentity>();
+            _activeItem = itemKey;
+            CmdSyncActiveItem(itemKey);
         }
 
-        [ClientRpc]
-        private void SetParentForNewObject(NetworkIdentity newParent, NetworkIdentity newObject)
+        [Command(requiresAuthority = false)]
+        private void CmdSyncActiveItem(string itemKey)
         {
-            // newObject.transform.parent = newParent.transform;
+            SetItemParentLocally(netIdentity);
+            CmdUpdateItemTransform(itemKey);
+        }
+        
+        [Command(requiresAuthority = false)]
+        private void CmdUpdateItemTransform(string itemKey)
+        {
+            if(_activeNetworkObject == null) return;
+            ItemInfo info = OnlineItemDatabase.ItemDatabase.GetItem(itemKey);
+            _activeNetworkObject.transform.localPosition = info.SpawnInventoryPosition;
+            if (_activeNetworkObject.TryGetComponent(out Rigidbody rigidbody))
+                rigidbody.isKinematic = true;
+        }
+        
+        [ClientRpc]
+        private void SetItemParentLocally(NetworkIdentity networkParent)
+        {
+            if(_activeNetworkObject == null) return;
+            _activeNetworkObject.transform.SetParent(networkParent.transform);
         }
 
         [Command(requiresAuthority = false)]
