@@ -15,12 +15,13 @@ namespace Rooms
         public void CmdSpawnRoom(NetworkIdentity calledSpawn)
         {
             if(_isSpawned) return;
-            GameObject prefab = nextRoom.RoomPrefab;
+            GameObject prefab = nextRoom.GetRandomRoom();
             GameObject newRoom = Instantiate(prefab, nextPosition.position, prefab.transform.rotation);
             NetworkServer.Spawn(newRoom);
 
             MapBrightnessReducer reducer = newRoom.GetComponent<MapBrightnessReducer>();
             reducer.CmdChangeBrightness(calledSpawn.GetComponent<LocalPlayer>().PlayerDistance);
+            RoomDestroyer.AddRoom(newRoom);
             _isSpawned = true;
         }
     }

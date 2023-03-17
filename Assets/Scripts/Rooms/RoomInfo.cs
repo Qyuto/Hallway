@@ -6,6 +6,11 @@ namespace Rooms
     public class RoomInfo : ScriptableObject
     {
         public string RoomId;
-        public GameObject RoomPrefab;
+        [SerializeField] private GameObject[] RoomsPrefab;
+
+        public GameObject GetRandomRoom()
+        {
+            return RoomsPrefab[Random.Range(0, RoomsPrefab.Length)];
+        }
     }
 }

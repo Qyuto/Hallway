@@ -100,9 +100,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncDirection: 0
+  syncDirection: 1
   syncMode: 0
-  syncInterval: 0.1
+  syncInterval: 0.01
   clientAuthority: 1
   animator: {fileID: 5886598896823409328}
 --- !u!143 &7020478056065139711
@@ -233,6 +233,12 @@ MonoBehaviour:
   secondSlotReference: {fileID: 4033524094274133796, guid: 06302a255129ffa4a8d824abcd629460, type: 3}
   thirdSlotReference: {fileID: 5702482022672733796, guid: 06302a255129ffa4a8d824abcd629460, type: 3}
   OnActiveSlotChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnAddItem:
+    m_PersistentCalls:
+      m_Calls: []
+  OnRemoveItem:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1001 &5995066869911149011

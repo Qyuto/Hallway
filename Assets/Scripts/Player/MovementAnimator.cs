@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,10 +43,11 @@ public class MovementAnimator : MonoBehaviour
         moveReference.action.Disable();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        _playerAnimator.SetFloat(_velocityHashY, _nextDelta.y);
-        _playerAnimator.SetFloat(_velocityHashX, _nextDelta.x);
+        _currentDelta = Vector3.MoveTowards(_currentDelta, _nextDelta, Time.fixedDeltaTime * 3f);
+        _playerAnimator.SetFloat(_velocityHashY, _currentDelta.y);
+        _playerAnimator.SetFloat(_velocityHashX, _currentDelta.x);
     }
 
     private void UpdateDeltaValue(InputAction.CallbackContext obj)
