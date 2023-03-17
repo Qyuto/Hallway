@@ -11,7 +11,7 @@ namespace Item
         public void OnSelect(NetworkIdentity identity)
         {
             if (identity.TryGetComponent(out PlayerInventory inventory))
-                inventory.CmdAddNewItem(netIdentity, info.ItemId);
+                inventory.CmdAddNewItem(inventory.LocalActiveSlot, netIdentity, info.ItemId);
         }
     }
 }

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 270e45657dd9431cac25806830afaf5f, type: 3}
   m_Name: Item_RustKey
   m_EditorClassIdentifier: 
-  spawnInventoryPosition: {x: 0.3, y: 1.5, z: 0.6}
+  itemInventorySprite: {fileID: 21300000, guid: ca432f89987a9d04ab8e93fd28bb4a7d, type: 3}
   showInInventory: 1
   itemPrefab: {fileID: 2291269566036194311, guid: 70757adb1516836469c770e8bd738b2d, type: 3}
   itemKeyId: item_rustkey
+  spawnInventoryPosition: {x: 0.3, y: 1.5, z: 0.6}

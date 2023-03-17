@@ -1,4 +1,5 @@
-﻿using Item;
+﻿using System;
+using Item;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,6 +9,8 @@ namespace Network.Player
 {
     public class PlayerInventory : NetworkBehaviour
     {
+        private const int MaxInventorySize = 3;
+
         [SerializeField] private LayerMask itemMask;
         [SerializeField] private Transform viewTransform;
         [SerializeField] private InputActionReference interactableReference;
@@ -17,10 +20,13 @@ namespace Network.Player
         [SerializeField] private InputActionReference thirdSlotReference;
 
         public UnityEvent<int> OnActiveSlotChanged;
+        public UnityEvent<string, int> OnAddItem;
+        public UnityEvent<string, int> OnRemoveItem;
+        public int LocalActiveSlot => _activeSlot;
 
         [SyncVar] private string _activeItem;
         [SyncVar] private NetworkIdentity _activeNetworkObject;
-    
+
         public readonly SyncList<string> _inventoryString = new SyncList<string>();
         private int _activeSlot;
 
@@ -29,6 +35,12 @@ namespace Network.Player
             BindInputActions();
             if (isLocalPlayer)
                 OnActiveSlotChanged.AddListener(OnActiveSlotChange);
+        }
+
+        public override void OnStartLocalPlayer()
+        {
+            base.OnStartLocalPlayer();
+            CmdSetLimitForSyncList();
         }
 
         public override void OnStartClient()
@@ -91,8 +103,8 @@ namespace Network.Player
 
         private void DropItem(InputAction.CallbackContext obj)
         {
-            if(_inventoryString.Count > _activeSlot && _inventoryString[_activeSlot] != null)
-                CmdDropItem(_inventoryString[_activeSlot], viewTransform.position + viewTransform.forward);
+            if (_inventoryString.Count > _activeSlot && _inventoryString[_activeSlot] != null)
+                CmdDropItem(_activeSlot, _inventoryString[_activeSlot], viewTransform.position + viewTransform.forward);
         }
 
         private void TryPickUp()
@@ -100,7 +112,8 @@ namespace Network.Player
             if (viewTransform == null)
                 viewTransform = Camera.main.transform;
 
-            if (Physics.SphereCast(viewTransform.position, 0.3f, viewTransform.forward, out RaycastHit hitInfo, 2f, itemMask, QueryTriggerInteraction.Ignore))
+            if (Physics.SphereCast(viewTransform.position, 0.3f, viewTransform.forward, out RaycastHit hitInfo, 2f,
+                    itemMask, QueryTriggerInteraction.Ignore))
             {
                 IInteractable interactable = hitInfo.collider.GetComponentInParent<IInteractable>();
                 interactable.OnSelect(netIdentity);
@@ -110,7 +123,7 @@ namespace Network.Player
         private void OnActiveSlotChange(int newSlot)
         {
             if (_inventoryString.Count > newSlot && _inventoryString[newSlot] != null)
-                CmdSpawnInventoryItem(_inventoryString[newSlot]);
+                CmdSpawnInventoryItem(_activeSlot, _inventoryString[newSlot]);
         }
 
         private void SetActiveFirstSlot(InputAction.CallbackContext obj)
@@ -132,13 +145,15 @@ namespace Network.Player
         }
 
         [Command(requiresAuthority = false)]
-        private void CmdSpawnInventoryItem(string itemKey)
+        private void CmdSpawnInventoryItem(int localActiveSlot, string itemKey)
         {
-            if(itemKey == _activeItem) return;
+            if (_inventoryString[localActiveSlot] == string.Empty) return;
+            if (itemKey == _activeItem) return;
             if (_activeNetworkObject != null) CmdDestroyActiveItem();
 
             ItemInfo info = OnlineItemDatabase.ItemDatabase.GetItem(itemKey);
-            GameObject newItem = Instantiate(info.Prefab, transform.position, Quaternion.identity, netIdentity.transform);
+            GameObject newItem =
+                Instantiate(info.Prefab, transform.position, Quaternion.identity, netIdentity.transform);
             NetworkServer.Spawn(newItem.gameObject);
             _activeNetworkObject = newItem.GetComponent<NetworkIdentity>();
             _activeItem = itemKey;
@@ -183,41 +198,52 @@ namespace Network.Player
         }
 
         [Command(requiresAuthority = false)]
-        private void CmdDropItem(string dropItemId, Vector3 dropPosition)
+        private void CmdDropItem(int clientActiveSlot, string dropItemId, Vector3 dropPosition)
         {
+            if (_inventoryString[clientActiveSlot] == String.Empty) return;
             if (_activeItem != string.Empty || _activeNetworkObject != null) CmdDestroyActiveItem();
             ItemInfo info = OnlineItemDatabase.ItemDatabase.GetItem(dropItemId);
             GameObject newItem = Instantiate(info.Prefab, dropPosition, Quaternion.identity);
             NetworkServer.Spawn(newItem);
-            _inventoryString.Remove(dropItemId);
+            _inventoryString[clientActiveSlot] = String.Empty;
             NotifyDropItem(netIdentity.connectionToClient, dropItemId);
         }
 
         [Command(requiresAuthority = false)]
-        public void CmdAddNewItem(NetworkIdentity itemIdentity, string itemKey)
+        public void CmdAddNewItem(int clientActiveSlot, NetworkIdentity itemIdentity, string itemKey)
         {
             Debug.Log($"Try add new item for player: {NetworkClient.localPlayer.name}");
-            if (_inventoryString.Count >= 3)
+
+            if (_inventoryString[clientActiveSlot] != String.Empty)
             {
-                Debug.LogWarning("[Player Inventory] Exceeded the limit of slots in the inventory");
+                Debug.LogWarning("[PlayerInventory] The slot in the inventory is already occupied");
                 return;
             }
-            
-            _inventoryString.Add(itemKey);
+
+            _inventoryString[clientActiveSlot] = itemKey;
             NetworkServer.Destroy(itemIdentity.gameObject);
             NotifyNewItem(netIdentity.connectionToClient, itemKey);
+        }
+
+        [Command]
+        private void CmdSetLimitForSyncList()
+        {
+            for (int i = 0; i != MaxInventorySize; i++)
+                _inventoryString.Add(String.Empty);
         }
 
         [TargetRpc]
         private void NotifyNewItem(NetworkConnectionToClient target, string newItemKey)
         {
             Debug.Log($"You have new item: {newItemKey}");
+            OnAddItem?.Invoke(newItemKey, _activeSlot);
         }
 
         [TargetRpc]
         private void NotifyDropItem(NetworkConnectionToClient target, string newItemKey)
         {
             Debug.Log($"You have drop item: {newItemKey}");
+            OnRemoveItem?.Invoke(newItemKey, _activeSlot);
         }
     }
 }
