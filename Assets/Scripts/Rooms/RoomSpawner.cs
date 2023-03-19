@@ -16,7 +16,7 @@ namespace Rooms
         {
             if(_isSpawned) return;
             GameObject prefab = nextRoom.GetRandomRoom();
-            GameObject newRoom = Instantiate(prefab, nextPosition.position, prefab.transform.rotation);
+            GameObject newRoom = Instantiate(prefab, nextPosition.position, nextPosition.rotation);
             NetworkServer.Spawn(newRoom);
 
             MapBrightnessReducer reducer = newRoom.GetComponent<MapBrightnessReducer>();
