@@ -13,10 +13,14 @@ namespace Network
 
         public Action OnLocalPlayerInit;
 
+        private void Awake()
+        {
+            Player = this;
+        }
+
         public override void OnStartLocalPlayer()
         {
             base.OnStartLocalPlayer();
-            Player = this;
             OnLocalPlayerInit?.Invoke();
         }
 

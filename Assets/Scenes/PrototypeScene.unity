@@ -205,7 +205,7 @@ MonoBehaviour:
   offlineScene: 
   onlineScene: 
   transport: {fileID: 453678225}
-  networkAddress: 26.70.106.93
+  networkAddress: localhost
   maxConnections: 4
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 7020478056065139709, guid: 82a64299dd7523843937e8a3d76ff88a, type: 3}
@@ -331,7 +331,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-1562
+  m_Name: pb_Mesh91938
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2

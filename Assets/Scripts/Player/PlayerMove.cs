@@ -20,7 +20,8 @@ public class PlayerMove : MonoBehaviour
     private Vector2 _readValue;
     private Vector3 _nextDirection;
     private Vector3 _velocity;
-    
+
+    public bool IsMoving;
     public UnityEvent<bool> OnCrouching;
 
     private void Awake()
@@ -48,10 +49,10 @@ public class PlayerMove : MonoBehaviour
     private void Update()
     {
         _isGrounded = Physics.Raycast(transform.position, Vector3.down, 0.2f, overlappedMask, QueryTriggerInteraction.Ignore);
-        Debug.DrawRay(transform.position,Vector3.down * 0.2f);
         if (_isGrounded && _velocity.y < 0)
             _velocity.y = -2f;
 
+        IsMoving = _nextDirection.sqrMagnitude != 0;
         _velocity.y += -9.81f * Time.deltaTime;
     }
 
@@ -61,9 +62,9 @@ public class PlayerMove : MonoBehaviour
         _nextDirection = transform.right * _readValue.x + transform.forward * _readValue.y;
         
         if (_isCrouching)
-            _characterController.Move(_nextDirection * crouchSpeed * Time.fixedDeltaTime);
+            _characterController.Move(_nextDirection.normalized * crouchSpeed * Time.fixedDeltaTime);
         else
-            _characterController.Move(_nextDirection * moveSpeed * Time.fixedDeltaTime);
+            _characterController.Move(_nextDirection.normalized * moveSpeed * Time.fixedDeltaTime);
 
         _characterController.Move(_velocity * Time.deltaTime);
     }
