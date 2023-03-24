@@ -1,4 +1,4 @@
-using System;
+using Network;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -11,12 +11,12 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private LayerMask overlappedMask;
     [SerializeField] private float moveSpeed = 6f;
     [SerializeField] private float crouchSpeed = 2f;
-    
+
     private CharacterController _characterController;
-    
+
     private bool _isGrounded;
     private bool _isCrouching;
-    
+
     private Vector2 _readValue;
     private Vector3 _nextDirection;
     private Vector3 _velocity;
@@ -27,6 +27,16 @@ public class PlayerMove : MonoBehaviour
     private void Awake()
     {
         _characterController = GetComponentInParent<CharacterController>();
+    }
+
+    private void Start()
+    {
+        LocalPlayer.Player.OnPlayerDeath.AddListener(DisableMovement);
+    }
+
+    private void DisableMovement()
+    {
+        enabled = false;
     }
 
     private void StopCrouching(InputAction.CallbackContext obj)
@@ -48,7 +58,8 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
-        _isGrounded = Physics.Raycast(transform.position, Vector3.down, 0.2f, overlappedMask, QueryTriggerInteraction.Ignore);
+        _isGrounded = Physics.Raycast(transform.position, Vector3.down, 0.2f, overlappedMask,
+            QueryTriggerInteraction.Ignore);
         if (_isGrounded && _velocity.y < 0)
             _velocity.y = -2f;
 
@@ -58,9 +69,8 @@ public class PlayerMove : MonoBehaviour
 
     private void FixedUpdate()
     {
-        
         _nextDirection = transform.right * _readValue.x + transform.forward * _readValue.y;
-        
+
         if (_isCrouching)
             _characterController.Move(_nextDirection.normalized * crouchSpeed * Time.fixedDeltaTime);
         else

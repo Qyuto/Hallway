@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class CameraPosition : MonoBehaviour
 {
+    [SerializeField] private Transform cameraHolder;
     [SerializeField] private Vector3 standalonePosition;
     [SerializeField] private Vector3 crounchPosition;
     [SerializeField] private PlayerMove playerMove;
@@ -10,7 +11,7 @@ public class CameraPosition : MonoBehaviour
     private void Awake()
     {
         playerMove.OnCrouching.AddListener(OnCrouching);
-        transform.localPosition = standalonePosition;
+        cameraHolder.localPosition = standalonePosition;
     }
 
     private void OnCrouching(bool status)
@@ -31,9 +32,9 @@ public class CameraPosition : MonoBehaviour
 
     IEnumerator SetCameraPosition(Vector3 nextLocalPosition, float step = 1f)
     {
-        while (!Mathf.Approximately((nextLocalPosition - transform.localPosition).magnitude, 0))
+        while (!Mathf.Approximately((nextLocalPosition - cameraHolder.localPosition).magnitude, 0))
         {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, nextLocalPosition, step);
+            cameraHolder.localPosition = Vector3.Lerp(cameraHolder.localPosition, nextLocalPosition, step);
             yield return null;
         }
 

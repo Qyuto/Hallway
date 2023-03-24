@@ -1,3 +1,4 @@
+using System;
 using Network;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,17 +15,26 @@ public class MouseRotation : MonoBehaviour
 
     private void Start()
     {
-        if (LocalPlayer.Player.isLocalPlayer)
-        {
-            _bodyTransform = LocalPlayer.Player.transform;
-            Cursor.lockState = CursorLockMode.Confined;
-        }
+        LocalPlayer.Player.OnPlayerDeath.AddListener(DisableRotation);
+        _bodyTransform = LocalPlayer.Player.transform;
+        Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    private void DisableRotation()
+    {
+        enabled = false;
     }
 
     private void OnEnable()
     {
         rotationReference.action.performed += Rotate;
         rotationReference.action.Enable();
+    }
+
+    private void OnDisable()
+    {
+        rotationReference.action.performed -= Rotate;
+        rotationReference.action.Disable();
     }
 
     private void Rotate(InputAction.CallbackContext obj)
