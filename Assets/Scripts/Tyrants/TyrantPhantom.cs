@@ -22,7 +22,7 @@ namespace Tyrants
         private void Update()
         {
             if (!isServer || _isAttacking) return;
-            if (!_moveLogic.FindTarget(out NetworkIdentity target, findRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
+            if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, findRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
             CmdSetSelectedUser(target);
             StartCoroutine(_moveLogic.MoveToTarget(target.transform, 1f, CmdHideTyrant));
             _isAttacking = true;

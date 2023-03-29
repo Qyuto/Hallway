@@ -26,8 +26,7 @@ namespace Tyrants
             }
             onArrive?.Invoke();
         }
-
-        public bool FindTarget(out NetworkIdentity target, float radius, LayerMask targetMask, QueryTriggerInteraction triggerInteraction)
+        public bool FindClosestIdentityInRange(out NetworkIdentity target, float radius, LayerMask targetMask, QueryTriggerInteraction triggerInteraction)
         {
             target = null;
             Collider[] colliders = Physics.OverlapSphere(transform.position, radius, targetMask, triggerInteraction);

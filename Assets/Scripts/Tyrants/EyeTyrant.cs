@@ -23,7 +23,7 @@ public class EyeTyrant : BaseTyrant
     {
         if (!isServer || _isAttacking) return;
 
-        if (!_moveLogic.FindTarget(out NetworkIdentity target, forceAttackRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
+        if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, forceAttackRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
         CmdSetSelectedUser(target);
         CmdStartAttacking();
     }
