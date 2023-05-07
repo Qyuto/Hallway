@@ -19,7 +19,7 @@ namespace UI
 
         private void ShowDeathUI()
         {
-            canvasGroup.alpha = 1f;
+            canvasGroup.gameObject.SetActive(false);
         }
     }
 }

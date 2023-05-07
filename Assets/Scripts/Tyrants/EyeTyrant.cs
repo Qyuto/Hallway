@@ -7,23 +7,26 @@ using UnityEngine;
 [RequireComponent(typeof(TyrantMoveLogic))]
 public class EyeTyrant : BaseTyrant
 {
-    [SerializeField] private LayerMask playerMask;
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private float forceAttackRadius;
-    [SyncVar(hook = nameof(PlaySound))] private bool _isAttacking;
-
     private TyrantMoveLogic _moveLogic;
 
     private void Awake()
     {
         _moveLogic = GetComponent<TyrantMoveLogic>();
+        OnAttackingChanged.AddListener(PlayClip);
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        OnAttackingChanged.AddListener(PlayClip);
     }
 
     private void Update()
     {
-        if (!isServer || _isAttacking) return;
+        if (!isServer || IsAttacking) return;
 
-        if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, forceAttackRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
+        if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, findRadius, targetMask, QueryTriggerInteraction.Ignore)) return;
         CmdSetSelectedUser(target);
         CmdStartAttacking();
     }
@@ -31,11 +34,11 @@ public class EyeTyrant : BaseTyrant
     [Command(requiresAuthority = false)]
     private void CmdStartAttacking()
     {
-        _isAttacking = true;
+        IsAttacking = true;
         StartCoroutine(WaitBeforeMove());
     }
 
-    private void PlaySound(bool oldValue, bool newValue)
+    private void PlayClip(bool newValue)
     {
         audioSource.Play();
     }
@@ -59,12 +62,12 @@ public class EyeTyrant : BaseTyrant
     public override void OnSelect(NetworkIdentity networkIdentity)
     {
         base.OnSelect(networkIdentity);
-        if (_isAttacking) return;
+        if (IsAttacking) return;
         CmdStartAttacking();
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(transform.position, forceAttackRadius);
+        Gizmos.DrawWireSphere(transform.position, findRadius);
     }
 }

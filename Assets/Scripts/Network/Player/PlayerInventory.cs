@@ -23,7 +23,6 @@ namespace Network.Player
         public UnityEvent<string, int> OnAddItem;
         public UnityEvent<string, int> OnRemoveItem;
         public int LocalActiveSlot => _activeSlot;
-
         [SyncVar] private string _activeItem;
         [SyncVar] private NetworkIdentity _activeNetworkObject;
 

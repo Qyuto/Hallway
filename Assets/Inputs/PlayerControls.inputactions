@@ -85,6 +85,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleMenu",
+                    "type": "Button",
+                    "id": "3cfabfa8-ba3e-4fac-ad0a-7a4094db3d3c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -233,6 +242,17 @@
                 },
                 {
                     "name": "",
+                    "id": "ed66ce9d-30f9-4be4-a317-d85cac5be1ad",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "0450bf83-44ca-4700-9290-62e007221d0f",
                     "path": "<Keyboard>/g",
                     "interactions": "",
@@ -272,6 +292,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ChangeActiveSlot_3",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "91f6b61b-1435-4bbe-8148-099d7c2d2ec3",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

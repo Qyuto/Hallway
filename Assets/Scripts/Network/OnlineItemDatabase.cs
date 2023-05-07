@@ -8,18 +8,14 @@ public class OnlineItemDatabase : MonoBehaviour // Only server/host side
     [SerializeField] private List<ItemInfo> dataItem;
 
     public static OnlineItemDatabase ItemDatabase;
-
-    private void Awake()
+    private void Start()
     {
         if(ItemDatabase != null) Destroy(this);
         ItemDatabase = this;
-        NetworkManager manager = GetComponent<NetworkManager>();
-        
-        
         foreach (var item in dataItem)
         {
-            if(!manager.spawnPrefabs.Contains(item.Prefab))
-                manager.spawnPrefabs.Add(item.Prefab);
+            if(!NetworkManager.singleton.spawnPrefabs.Contains(item.Prefab))
+                NetworkManager.singleton.spawnPrefabs.Add(item.Prefab);
         }
     }
 

@@ -1,4 +1,3 @@
-using System;
 using Network;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,14 +8,33 @@ public class MouseRotation : MonoBehaviour
     [SerializeField] private Transform viewTransform;
     [SerializeField] private InputActionReference rotationReference;
 
+    public float MouseSense
+    {
+        get => mouseSense;
+        set
+        {
+            if (mouseSense < 0) mouseSense = 0.1f;
+            else mouseSense = value;
+        }
+    }
+    
     private Transform _bodyTransform;
     private Vector2 _deltaMouse;
     private float _yRotation;
-
+    
     private void Start()
     {
-        LocalPlayer.Player.OnPlayerDeath.AddListener(DisableRotation);
-        _bodyTransform = LocalPlayer.Player.transform;
+        if (LocalPlayer.Player != null)
+        {
+            LocalPlayer.Player.OnPlayerDeath.AddListener(DisableRotation);
+            _bodyTransform = LocalPlayer.Player.transform;    
+        }
+        if (_bodyTransform == null)
+        {
+            Debug.LogWarning("LocalPlayer not found, get transform on component owner");
+            _bodyTransform = transform;
+        }
+        
         Cursor.lockState = CursorLockMode.Confined;
     }
 

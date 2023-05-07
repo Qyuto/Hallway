@@ -8,24 +8,22 @@ namespace Tyrants
     {
         [SerializeField] private AudioSource audioSource;
         [SerializeField] private AudioClip clip;
-        [SerializeField] private float findRadius;
-        [SerializeField] private LayerMask playerMask;
 
         private TyrantMoveLogic _moveLogic;
-        [SyncVar(hook = nameof(PlayClip))] private bool _isAttacking;
 
         private void Awake()
         {
             _moveLogic = GetComponent<TyrantMoveLogic>();
+            OnAttackingChanged.AddListener(PlayClip);
         }
 
         private void Update()
         {
-            if (!isServer || _isAttacking) return;
-            if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, findRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
+            if (!isServer || IsAttacking) return;
+            if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity target, findRadius, targetMask, QueryTriggerInteraction.Ignore)) return;
             CmdSetSelectedUser(target);
             StartCoroutine(_moveLogic.MoveToTarget(target.transform, 1f, CmdHideTyrant));
-            _isAttacking = true;
+            IsAttacking = true;
         }
 
         [Command(requiresAuthority = false)]
@@ -34,12 +32,13 @@ namespace Tyrants
             NetworkServer.Destroy(gameObject);
         }
 
-        private void PlayClip(bool oldValue, bool newValue)
+        private void PlayClip(bool newValue)
         {
+            Debug.Log("Player Sound");
             audioSource.transform.parent = null;
             audioSource.clip = clip;
             audioSource.Play();
-            Destroy(audioSource.gameObject,5f);
+            Destroy(audioSource.gameObject, 5f);
         }
     }
 }

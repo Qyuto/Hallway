@@ -308,6 +308,10 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   playerDistance: 0
+  isHide: 0
+  OnPlayerDeath:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2950402753130911351
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,6 +458,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e12fbbf65ff352a4ba7202c5a1da2ffb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3321919801592875672, guid: e12fbbf65ff352a4ba7202c5a1da2ffb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3321919801592875672, guid: e12fbbf65ff352a4ba7202c5a1da2ffb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3321919801592875672, guid: e12fbbf65ff352a4ba7202c5a1da2ffb, type: 3}
+      propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e12fbbf65ff352a4ba7202c5a1da2ffb, type: 3}

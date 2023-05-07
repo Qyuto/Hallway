@@ -1820,13 +1820,14 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0.1
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 8
+  findRadius: 5
+  isAttacking: 0
   lastSelected: {fileID: 0}
   audioSource: {fileID: 471724943}
   clip: {fileID: 8300000, guid: 35470b2494db5c84487468b2bb449c90, type: 3}
-  findRadius: 25
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 8
 --- !u!114 &6619087081702139986
 MonoBehaviour:
   m_ObjectHideFlags: 0

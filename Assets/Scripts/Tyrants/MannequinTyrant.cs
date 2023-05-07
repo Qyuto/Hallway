@@ -1,17 +1,15 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using Network;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Tyrants
 {
+    [Obsolete("MannequinTyrant is deprecated, but you can use")]
     [RequireComponent(typeof(TyrantMoveLogic))]
     public class MannequinTyrant : BaseTyrant
     {
         [SerializeField, SyncVar] private bool _isBeingObserved;
-
-        [SerializeField] private LayerMask playerMask;
-        [SerializeField] private float findRadius;
 
         private TyrantMoveLogic _moveLogic;
         private Coroutine _moveCoroutine;
@@ -25,7 +23,7 @@ namespace Tyrants
         {
             if (!isServer) return;
             if (_isBeingObserved) return;
-            if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity networkIdentity, findRadius, playerMask, QueryTriggerInteraction.Ignore)) return;
+            if (!_moveLogic.FindClosestIdentityInRange(out NetworkIdentity networkIdentity, findRadius, targetMask, QueryTriggerInteraction.Ignore)) return;
             if (!networkIdentity.TryGetComponent(out LocalPlayer target)) return;
             _moveCoroutine ??= StartCoroutine(_moveLogic.MoveToTarget(target.transform, 5, () => target.CmdKillPlayer()));
         }
@@ -52,8 +50,8 @@ namespace Tyrants
             StartCoroutine(_moveLogic.MoveToTarget(_moveLogic.transform, 1, null));
             _moveCoroutine = null;
         }
-        
-        
+
+
         private void OnDrawGizmos()
         {
             Gizmos.DrawWireSphere(transform.position, findRadius);
